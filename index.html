@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="在浏览器本地生成 Etsy Listing 文案并批量压缩商品图片。">
+  <title>Etsy Operations Toolkit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Etsy Operations Toolkit 首页">
+      <span class="brand-mark" aria-hidden="true">E</span>
+      <span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span>
+    </a>
+    <nav aria-label="主要导航">
+      <a href="#listing">Listing 文案</a>
+      <a href="#compressor">图片压缩</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow"><span></span> Made for small creative businesses</div>
+      <h1>把灵感，整理成<br><em>更好的 Etsy 商品页。</em></h1>
+      <p>无需登录或 API Key。文案生成与图片压缩都在你的浏览器中完成，数据不会上传。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#listing">开始创建 <span>↘</span></a>
+        <span class="privacy-note">◉ 100% 本地处理</span>
+      </div>
+      <div class="hero-art" aria-hidden="true"><span>✦</span><div>handmade<br>with care</div></div>
+    </section>
+
+    <section class="tool-section" id="listing">
+      <div class="section-heading">
+        <div><span class="step">01</span><p class="kicker">LISTING STUDIO</p><h2>Etsy Listing Content</h2></div>
+        <p>输入商品信息，快速获得自然、温暖的中英文 Listing 文案与 Etsy 字段。</p>
+      </div>
+
+      <div class="workspace listing-workspace">
+        <form id="listing-form" class="panel form-panel" novalidate>
+          <div class="panel-title"><h3>商品信息</h3><button type="button" class="text-button" id="fill-example">填入示例</button></div>
+          <div class="field-grid">
+            <label class="wide">产品名称 <span>*</span><input id="product-name" placeholder="例如：月光陶瓷马克杯" required></label>
+            <label>产品类型 <span>*</span><input id="product-type" placeholder="例如：手工马克杯" required></label>
+            <label>材质 <span>*</span><input id="materials" placeholder="例如：陶瓷、釉料" required></label>
+            <label>主要颜色 <span>*</span><input id="primary-color" placeholder="例如：奶油白" required></label>
+            <label>次要颜色<input id="secondary-color" placeholder="例如：午夜蓝"></label>
+            <label>尺寸<input id="size" placeholder="例如：350ml / 9 × 8 cm"></label>
+            <label>适合人群<input id="audience" placeholder="例如：咖啡爱好者"></label>
+            <label>礼物场景<input id="occasion" placeholder="例如：生日、乔迁"></label>
+            <label>情绪价值<input id="emotion" placeholder="例如：宁静、治愈、独特"></label>
+          </div>
+          <div id="listing-error" class="error" role="alert" aria-live="polite"></div>
+          <button class="button primary full" type="submit">生成 Listing Content <span>→</span></button>
+          <p class="form-tip">提示：描述越具体，生成的内容越贴合你的商品。</p>
+        </form>
+
+        <div class="panel output-panel" id="listing-output">
+          <div class="empty-state" id="empty-output"><div>✦</div><h3>你的 Listing 文案会出现在这里</h3><p>填写左侧信息，然后点击生成按钮。</p></div>
+          <div id="output-content" hidden>
+            <div class="output-header"><div><p class="kicker">READY TO USE</p><h3>Listing Content</h3></div><span class="success-pill">✓ 已生成</span></div>
+            <div class="output-item"><div class="output-label">English Title <button class="copy-button" data-copy="en-title">Copy</button></div><p id="en-title"></p></div>
+            <div class="output-item"><div class="output-label">English Description <button class="copy-button" data-copy="en-description">Copy</button></div><p id="en-description" class="preserve"></p></div>
+            <div class="output-item"><div class="output-label">中文标题 <button class="copy-button" data-copy="zh-title">Copy</button></div><p id="zh-title"></p></div>
+            <div class="output-item"><div class="output-label">中文产品描述 <button class="copy-button" data-copy="zh-description">Copy</button></div><p id="zh-description" class="preserve"></p></div>
+            <div class="output-item"><div class="output-label">13 Etsy Tags <button class="copy-button" data-copy="tags-text">Copy</button></div><div id="tags" class="tags"></div><span id="tags-text" hidden></span></div>
+            <div class="mini-output-grid">
+              <div class="output-item"><div class="output-label">Materials <button class="copy-button" data-copy="out-materials">Copy</button></div><p id="out-materials"></p></div>
+              <div class="output-item"><div class="output-label">Primary Color <button class="copy-button" data-copy="out-primary">Copy</button></div><p id="out-primary"></p></div>
+              <div class="output-item"><div class="output-label">Secondary Color <button class="copy-button" data-copy="out-secondary">Copy</button></div><p id="out-secondary"></p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-section muted-section" id="compressor">
+      <div class="section-heading">
+        <div><span class="step">02</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div>
+        <p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p>
+      </div>
+      <div class="workspace compressor-workspace">
+        <div class="panel upload-panel">
+          <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="选择或拖放图片">
+            <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+            <div class="upload-icon">↥</div>
+            <h3>拖放图片到这里</h3><p>或 <span>浏览本地文件</span></p><small>支持 JPG、PNG、WebP · 可多选 · 单张最大 25MB</small>
+          </div>
+          <div class="local-note"><strong>⌾ 隐私优先</strong><p>图片只在当前浏览器中处理，不会离开你的设备。</p></div>
+          <div id="image-error" class="error" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="panel results-panel">
+          <div class="panel-title"><div><h3>压缩结果</h3><p id="result-count">上传图片后将在这里显示</p></div><button id="download-all" class="button secondary" type="button" hidden>全部下载 ↓</button></div>
+          <div id="image-results" class="image-results"><div class="result-empty">还没有待处理的图片</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="brand"><span class="brand-mark">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></div><p>Made with care for independent makers. <span>✦</span></p></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite">已复制到剪贴板</div>
+  <script src="script.js"></script>
+</body>
+</html>
