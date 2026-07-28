@@ -40,17 +40,36 @@
       <div class="workspace listing-workspace">
         <form id="listing-form" class="panel form-panel" novalidate>
           <div class="panel-title"><h3>商品信息</h3><button type="button" class="text-button" id="fill-example">填入示例</button></div>
-          <div class="field-grid">
-            <label class="wide">产品名称 <span>*</span><input id="product-name" placeholder="例如：月光陶瓷马克杯" required></label>
-            <label>产品类型 <span>*</span><input id="product-type" placeholder="例如：手工马克杯" required></label>
-            <label>材质 <span>*</span><input id="materials" placeholder="例如：陶瓷、釉料" required></label>
-            <label>主要颜色 <span>*</span><input id="primary-color" placeholder="例如：奶油白" required></label>
-            <label>次要颜色<input id="secondary-color" placeholder="例如：午夜蓝"></label>
-            <label>尺寸<input id="size" placeholder="例如：350ml / 9 × 8 cm"></label>
-            <label>适合人群<input id="audience" placeholder="例如：咖啡爱好者"></label>
-            <label>礼物场景<input id="occasion" placeholder="例如：生日、乔迁"></label>
-            <label>情绪价值<input id="emotion" placeholder="例如：宁静、治愈、独特"></label>
-          </div>
+          <fieldset class="language-fields">
+            <legend>中文商品信息</legend>
+            <p class="language-note">仅用于生成中文文案</p>
+            <div class="field-grid">
+              <label class="wide">产品名称 <span>*</span><input id="zh-product-name" placeholder="例如：月光陶瓷马克杯" required></label>
+              <label>产品类型 <span>*</span><input id="zh-product-type" placeholder="例如：手工马克杯" required></label>
+              <label>材质 <span>*</span><input id="zh-materials" placeholder="例如：陶瓷、釉料" required></label>
+              <label>主要颜色 <span>*</span><input id="zh-primary-color" placeholder="例如：奶油白" required></label>
+              <label>次要颜色<input id="zh-secondary-color" placeholder="例如：午夜蓝"></label>
+              <label>尺寸<input id="zh-size" placeholder="例如：350 毫升 / 9 × 8 厘米"></label>
+              <label>适合人群<input id="zh-audience" placeholder="例如：咖啡爱好者"></label>
+              <label>礼物场景<input id="zh-occasion" placeholder="例如：生日、乔迁"></label>
+              <label>情绪价值<input id="zh-emotion" placeholder="例如：宁静、治愈、独特"></label>
+            </div>
+          </fieldset>
+          <fieldset class="language-fields english-fields">
+            <legend>English Product Information</legend>
+            <p class="language-note">Used only to generate English content</p>
+            <div class="field-grid">
+              <label class="wide">Product Name <span>*</span><input id="en-product-name" placeholder="e.g. Moonlight Ceramic Mug" required></label>
+              <label>Product Type <span>*</span><input id="en-product-type" placeholder="e.g. handmade coffee mug" required></label>
+              <label>Materials <span>*</span><input id="en-materials" placeholder="e.g. stoneware clay, glaze" required></label>
+              <label>Primary Color <span>*</span><input id="en-primary-color" placeholder="e.g. cream white" required></label>
+              <label>Secondary Color<input id="en-secondary-color" placeholder="e.g. midnight blue"></label>
+              <label>Size<input id="en-size" placeholder="e.g. 350 ml / 9 × 8 cm"></label>
+              <label>Target Audience<input id="en-audience" placeholder="e.g. coffee lovers"></label>
+              <label>Gift Occasion<input id="en-occasion" placeholder="e.g. birthday, housewarming"></label>
+              <label>Emotional Value<input id="en-emotion" placeholder="e.g. calm, comfort, wonder"></label>
+            </div>
+          </fieldset>
           <div id="listing-error" class="error" role="alert" aria-live="polite"></div>
           <button class="button primary full" type="submit">生成 Listing Content <span>→</span></button>
           <p class="form-tip">提示：描述越具体，生成的内容越贴合你的商品。</p>
@@ -59,17 +78,30 @@
         <div class="panel output-panel" id="listing-output">
           <div class="empty-state" id="empty-output"><div>✦</div><h3>你的 Listing 文案会出现在这里</h3><p>填写左侧信息，然后点击生成按钮。</p></div>
           <div id="output-content" hidden>
-            <div class="output-header"><div><p class="kicker">READY TO USE</p><h3>Listing Content</h3></div><span class="success-pill">✓ 已生成</span></div>
-            <div class="output-item"><div class="output-label">English Title <button class="copy-button" data-copy="en-title">Copy</button></div><p id="en-title"></p></div>
-            <div class="output-item"><div class="output-label">English Description <button class="copy-button" data-copy="en-description">Copy</button></div><p id="en-description" class="preserve"></p></div>
-            <div class="output-item"><div class="output-label">中文标题 <button class="copy-button" data-copy="zh-title">Copy</button></div><p id="zh-title"></p></div>
-            <div class="output-item"><div class="output-label">中文产品描述 <button class="copy-button" data-copy="zh-description">Copy</button></div><p id="zh-description" class="preserve"></p></div>
-            <div class="output-item"><div class="output-label">13 Etsy Tags <button class="copy-button" data-copy="tags-text">Copy</button></div><div id="tags" class="tags"></div><span id="tags-text" hidden></span></div>
-            <div class="mini-output-grid">
-              <div class="output-item"><div class="output-label">Materials <button class="copy-button" data-copy="out-materials">Copy</button></div><p id="out-materials"></p></div>
-              <div class="output-item"><div class="output-label">Primary Color <button class="copy-button" data-copy="out-primary">Copy</button></div><p id="out-primary"></p></div>
-              <div class="output-item"><div class="output-label">Secondary Color <button class="copy-button" data-copy="out-secondary">Copy</button></div><p id="out-secondary"></p></div>
-            </div>
+            <section class="listing-language-card english-card" aria-labelledby="english-listing-heading">
+              <div class="output-header"><div><p class="kicker">READY TO USE</p><h3 id="english-listing-heading">ENGLISH LISTING</h3></div><button type="button" class="button secondary copy-all" data-copy-group="english">Copy All English</button></div>
+              <div class="output-item"><div class="output-label">English Title <button class="copy-button" data-copy="en-title">Copy</button></div><p id="en-title"></p></div>
+              <div class="output-item"><div class="output-label">English Description <button class="copy-button" data-copy="en-description">Copy</button></div><p id="en-description" class="preserve"></p></div>
+              <div class="output-item"><div class="output-label">13 Etsy Tags <button class="copy-button" data-copy="tags-text">Copy</button></div><div id="tags" class="tags"></div><span id="tags-text" hidden></span></div>
+              <div class="mini-output-grid">
+                <div class="output-item"><div class="output-label">Materials <button class="copy-button" data-copy="en-out-materials">Copy</button></div><p id="en-out-materials"></p></div>
+                <div class="output-item"><div class="output-label">Primary Color <button class="copy-button" data-copy="en-out-primary">Copy</button></div><p id="en-out-primary"></p></div>
+                <div class="output-item"><div class="output-label">Secondary Color <button class="copy-button" data-copy="en-out-secondary">Copy</button></div><p id="en-out-secondary"></p></div>
+                <div class="output-item"><div class="output-label">Size <button class="copy-button" data-copy="en-out-size">Copy</button></div><p id="en-out-size"></p></div>
+              </div>
+            </section>
+            <section class="listing-language-card chinese-card" aria-labelledby="chinese-listing-heading">
+              <div class="output-header"><div><p class="kicker">中文参考文案</p><h3 id="chinese-listing-heading">中文文案</h3></div><button type="button" class="button secondary copy-all" data-copy-group="chinese">复制全部中文内容</button></div>
+              <div class="output-item"><div class="output-label">中文标题 <button class="copy-button" data-copy="zh-title">复制</button></div><p id="zh-title"></p></div>
+              <div class="output-item"><div class="output-label">中文产品描述 <button class="copy-button" data-copy="zh-description">复制</button></div><p id="zh-description" class="preserve"></p></div>
+              <div class="output-item"><div class="output-label">13 个中文关键词参考 <button class="copy-button" data-copy="zh-keywords-text">复制</button></div><div id="zh-keywords" class="tags"></div><span id="zh-keywords-text" hidden></span><small class="reference-note">仅供理解和参考，不作为 Etsy 实际 Tags。</small></div>
+              <div class="mini-output-grid">
+                <div class="output-item"><div class="output-label">材料 <button class="copy-button" data-copy="zh-out-materials">复制</button></div><p id="zh-out-materials"></p></div>
+                <div class="output-item"><div class="output-label">主要颜色 <button class="copy-button" data-copy="zh-out-primary">复制</button></div><p id="zh-out-primary"></p></div>
+                <div class="output-item"><div class="output-label">次要颜色 <button class="copy-button" data-copy="zh-out-secondary">复制</button></div><p id="zh-out-secondary"></p></div>
+                <div class="output-item"><div class="output-label">尺寸 <button class="copy-button" data-copy="zh-out-size">复制</button></div><p id="zh-out-size"></p></div>
+              </div>
+            </section>
           </div>
         </div>
       </div>

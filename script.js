@@ -1,42 +1,97 @@
 const $ = (id) => document.getElementById(id);
 const form = $('listing-form');
-const fieldIds = ['product-name','product-type','materials','primary-color','secondary-color','size','audience','occasion','emotion'];
-const examples = { 'product-name':'Moonlight Ceramic Mug','product-type':'handmade ceramic coffee mug','materials':'stoneware clay, food-safe glaze','primary-color':'cream white','secondary-color':'midnight blue','size':'350 ml / 9 × 8 cm','audience':'coffee lovers and homebodies','occasion':'birthday, housewarming or self-care gift','emotion':'calm, comfort and a small moment of wonder' };
+const zhFieldIds = ['product-name','product-type','materials','primary-color','secondary-color','size','audience','occasion','emotion'].map(id => `zh-${id}`);
+const enFieldIds = ['product-name','product-type','materials','primary-color','secondary-color','size','audience','occasion','emotion'].map(id => `en-${id}`);
+const examples = {
+  'zh-product-name':'月光陶瓷马克杯','zh-product-type':'手工陶瓷咖啡杯','zh-materials':'炻器陶土、食品级釉料','zh-primary-color':'奶油白','zh-secondary-color':'午夜蓝','zh-size':'350 毫升 / 9 × 8 厘米','zh-audience':'咖啡爱好者与居家生活爱好者','zh-occasion':'生日、乔迁或犒赏自己的礼物','zh-emotion':'宁静、治愈与日常的小惊喜',
+  'en-product-name':'Moonlight Ceramic Mug','en-product-type':'handmade ceramic coffee mug','en-materials':'stoneware clay, food-safe glaze','en-primary-color':'cream white','en-secondary-color':'midnight blue','en-size':'350 ml / 9 × 8 cm','en-audience':'coffee lovers and homebodies','en-occasion':'birthdays, housewarmings, or self-care gifts','en-emotion':'calm, comfort, and a small moment of wonder'
+};
 const val = id => $(id).value.trim();
-const cap = text => text ? text.charAt(0).toUpperCase()+text.slice(1) : '';
+const cap = text => text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
 const cleanTag = text => text.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim().slice(0,20).trim();
+const containsChinese = text => /[\u3400-\u9fff]/.test(text);
 
-$('fill-example').addEventListener('click', () => { Object.entries(examples).forEach(([id,value]) => $(id).value=value); hideError('listing-error'); });
+$('fill-example').addEventListener('click', () => {
+  Object.entries(examples).forEach(([id,value]) => $(id).value = value);
+  hideError('listing-error');
+});
+
 form.addEventListener('submit', (event) => {
   event.preventDefault();
-  const required = ['product-name','product-type','materials','primary-color'];
-  const missing = required.filter(id => !val(id));
-  if (missing.length) { showError('listing-error','请填写所有带 * 的必填项目，再生成文案。'); $(missing[0]).focus(); return; }
+  const requiredZh = ['zh-product-name','zh-product-type','zh-materials','zh-primary-color'];
+  const requiredEn = ['en-product-name','en-product-type','en-materials','en-primary-color'];
+  const missingZh = requiredZh.filter(id => !val(id));
+  const missingEn = requiredEn.filter(id => !val(id));
+  const invalidEn = enFieldIds.filter(id => containsChinese(val(id)));
+  if (missingEn.length || invalidEn.length) {
+    showError('listing-error','请填写英文商品信息，避免英文文案中出现中文内容。');
+    $(missingEn[0] || invalidEn[0]).focus();
+    return;
+  }
+  if (missingZh.length) {
+    showError('listing-error','请填写中文商品信息中所有带 * 的必填项目。');
+    $(missingZh[0]).focus();
+    return;
+  }
   hideError('listing-error');
-  const d = Object.fromEntries(fieldIds.map(id => [id,val(id)]));
-  const audience = d.audience || 'thoughtful gift seekers';
-  const occasion = d.occasion || 'birthdays and meaningful moments';
-  const emotion = d.emotion || 'warmth, character and everyday joy';
-  const sizeLine = d.size ? `Sized at ${d.size}, it is made for comfortable everyday use.` : 'Thoughtfully proportioned for comfortable everyday use.';
-  const enTitle = `${cap(d['product-name'])} — A Thoughtful ${cap(d['product-type'])} for ${cap(audience)}`;
-  const enDescription = `Bring ${emotion} into the everyday with this ${d['product-type']}. ${d['product-name']} is carefully made from ${d.materials}, pairing ${d['primary-color']}${d['secondary-color'] ? ` with touches of ${d['secondary-color']}` : ''} for a quietly distinctive finish.\n\n${sizeLine} Each piece has the subtle variations that make handmade work special. It is a lovely choice for ${audience}, and a meaningful gift for ${occasion}.\n\nDETAILS\n• Materials: ${d.materials}\n• Color: ${d['primary-color']}${d['secondary-color'] ? ` and ${d['secondary-color']}` : ''}${d.size ? `\n• Size: ${d.size}` : ''}\n\nMade with care and ready to become part of someone’s daily ritual.`;
-  const zhTitle = `${d['product-name']}｜为${audience}用心制作的${d['product-type']}`;
-  const zhDescription = `让这件${d['product-type']}为日常带来${emotion}。${d['product-name']}采用${d.materials}细心制作，以${d['primary-color']}为主色${d['secondary-color'] ? `，搭配${d['secondary-color']}细节` : ''}，呈现安静而独特的质感。\n\n${d.size ? `尺寸为 ${d.size}，` : ''}适合${audience}日常使用，也适合作为${occasion}的暖心礼物。手工制作带来的细微差异，让每一件作品都拥有自己的个性。\n\n材质：${d.materials}\n颜色：${d['primary-color']}${d['secondary-color'] ? `、${d['secondary-color']}` : ''}${d.size ? `\n尺寸：${d.size}` : ''}`;
-  const rawTags = [d['product-type'],d['product-name'],'handmade gift',`${d['primary-color']} decor`,d.materials.split(',')[0],audience.split(/,| and /)[0],occasion.split(/,| or /)[0],'artisan made','unique keepsake','thoughtful present','small batch made','cozy home gift',d['secondary-color'] || 'made with care'];
-  const tags=[]; rawTags.map(cleanTag).forEach(t => { if(t && !tags.includes(t)) tags.push(t); });
-  const fallbacks=['etsy handmade','gift for her','gift for him','everyday beauty']; fallbacks.forEach(t=>{if(tags.length<13&&!tags.includes(t))tags.push(t)});
-  setText('en-title',enTitle); setText('en-description',enDescription); setText('zh-title',zhTitle); setText('zh-description',zhDescription);
-  $('tags').innerHTML=tags.slice(0,13).map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join(''); setText('tags-text',tags.slice(0,13).join(', '));
-  setText('out-materials',d.materials); setText('out-primary',d['primary-color']); setText('out-secondary',d['secondary-color']||'Not specified');
-  $('empty-output').hidden=true; $('output-content').hidden=false;
-  if(innerWidth<800) $('listing-output').scrollIntoView({behavior:'smooth',block:'start'});
+  const zh = Object.fromEntries(zhFieldIds.map(id => [id.replace('zh-',''), val(id)]));
+  const en = Object.fromEntries(enFieldIds.map(id => [id.replace('en-',''), val(id)]));
+
+  const enAudience = en.audience || 'thoughtful gift seekers';
+  const enOccasion = en.occasion || 'birthdays and meaningful moments';
+  const enEmotion = en.emotion || 'warmth, character, and everyday joy';
+  const sizeLine = en.size ? `Sized at ${en.size}, it is made for comfortable everyday use.` : 'Thoughtfully proportioned for comfortable everyday use.';
+  const enTitle = `${cap(en['product-name'])} — A Thoughtful ${cap(en['product-type'])} for ${cap(enAudience)}`;
+  const enDescription = `Bring ${enEmotion} into the everyday with this ${en['product-type']}. ${en['product-name']} is carefully made from ${en.materials}, pairing ${en['primary-color']}${en['secondary-color'] ? ` with touches of ${en['secondary-color']}` : ''} for a quietly distinctive finish.\n\n${sizeLine} Each piece has the subtle variations that make handmade work special. It is a lovely choice for ${enAudience}, and a meaningful gift for ${enOccasion}.\n\nDETAILS\n• Materials: ${en.materials}\n• Color: ${en['primary-color']}${en['secondary-color'] ? ` and ${en['secondary-color']}` : ''}${en.size ? `\n• Size: ${en.size}` : ''}\n\nMade with care and ready to become part of someone’s daily ritual.`;
+
+  const zhAudience = zh.audience || '珍惜手作温度的人';
+  const zhOccasion = zh.occasion || '生日与值得纪念的时刻';
+  const zhEmotion = zh.emotion || '温暖、个性与日常喜悦';
+  const zhTitle = `${zh['product-name']}｜为${zhAudience}用心制作的${zh['product-type']}`;
+  const zhDescription = `让这件${zh['product-type']}为日常带来${zhEmotion}。${zh['product-name']}采用${zh.materials}细心制作，以${zh['primary-color']}为主色${zh['secondary-color'] ? `，搭配${zh['secondary-color']}细节` : ''}，呈现安静而独特的质感。\n\n${zh.size ? `尺寸为${zh.size}，` : ''}适合${zhAudience}日常使用，也适合作为${zhOccasion}的暖心礼物。手工制作带来的细微差异，让每一件作品都拥有自己的个性。\n\n材料：${zh.materials}\n颜色：${zh['primary-color']}${zh['secondary-color'] ? `、${zh['secondary-color']}` : ''}${zh.size ? `\n尺寸：${zh.size}` : ''}`;
+
+  const rawTags = [en['product-type'],en['product-name'],'handmade gift',`${en['primary-color']} decor`,en.materials.split(',')[0],enAudience.split(/,| and /)[0],enOccasion.split(/,| or /)[0],'artisan made','unique keepsake','thoughtful present','small batch made','cozy home gift',en['secondary-color'] || 'made with care'];
+  const tags = [];
+  rawTags.map(cleanTag).forEach(tag => { if (tag && !tags.includes(tag)) tags.push(tag); });
+  ['etsy handmade','gift for her','gift for him','everyday beauty','handcrafted item','creative gift','artisan decor','special occasion'].forEach(tag => { if (tags.length < 13 && !tags.includes(tag)) tags.push(tag); });
+  const zhKeywords = [zh['product-type'],zh['product-name'],'手工礼物',`${zh['primary-color']}家居`,zh.materials.split(/、|，/)[0],zhAudience.split(/、|与|和/)[0],zhOccasion.split(/、|或/)[0],'匠心制作','独特纪念品','暖心赠礼','小批量手作','温馨家居礼物',zh['secondary-color'] || '用心制作'];
+
+  setText('en-title',enTitle); setText('en-description',enDescription);
+  $('tags').innerHTML = tags.slice(0,13).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+  setText('tags-text',tags.slice(0,13).join(', '));
+  setText('en-out-materials',en.materials); setText('en-out-primary',en['primary-color']);
+  setText('en-out-secondary',en['secondary-color'] || 'Not specified'); setText('en-out-size',en.size || 'Not specified');
+  setText('zh-title',zhTitle); setText('zh-description',zhDescription);
+  $('zh-keywords').innerHTML = zhKeywords.map(keyword => `<span class="tag">${escapeHtml(keyword)}</span>`).join('');
+  setText('zh-keywords-text',zhKeywords.join('、'));
+  setText('zh-out-materials',zh.materials); setText('zh-out-primary',zh['primary-color']);
+  setText('zh-out-secondary',zh['secondary-color'] || '未填写'); setText('zh-out-size',zh.size || '未填写');
+  $('empty-output').hidden = true; $('output-content').hidden = false;
+  if (innerWidth < 800) $('listing-output').scrollIntoView({behavior:'smooth',block:'start'});
 });
-function setText(id,text){ $(id).textContent=text; }
-function escapeHtml(s){ const e=document.createElement('div');e.textContent=s;return e.innerHTML; }
-function showError(id,message){ $(id).textContent=message;$(id).classList.add('show'); }
+
+function setText(id,text){ $(id).textContent = text; }
+function escapeHtml(s){ const e=document.createElement('div'); e.textContent=s; return e.innerHTML; }
+function showError(id,message){ $(id).textContent=message; $(id).classList.add('show'); }
 function hideError(id){ $(id).classList.remove('show'); }
-function toast(message){ const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),1800); }
-document.querySelectorAll('.copy-button').forEach(btn=>btn.addEventListener('click',async()=>{ const text=$(btn.dataset.copy).textContent; try{await navigator.clipboard.writeText(text)}catch{const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();document.execCommand('copy');area.remove()} btn.textContent='Copied ✓';btn.classList.add('copied');toast('已复制到剪贴板');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied')},1500); }));
+function toast(message){ const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.remove('show'),1800); }
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); }
+  catch { const area=document.createElement('textarea'); area.value=text; document.body.append(area); area.select(); document.execCommand('copy'); area.remove(); }
+}
+document.querySelectorAll('.copy-button').forEach(btn => btn.addEventListener('click', async () => {
+  await copyText($(btn.dataset.copy).textContent);
+  const original=btn.textContent; btn.textContent=original === '复制' ? '已复制 ✓' : 'Copied ✓'; btn.classList.add('copied'); toast('已复制到剪贴板');
+  setTimeout(()=>{ btn.textContent=original; btn.classList.remove('copied'); },1500);
+}));
+const copyGroups = {
+  english: [['English Title','en-title'],['English Description','en-description'],['13 Etsy Tags','tags-text'],['Materials','en-out-materials'],['Primary Color','en-out-primary'],['Secondary Color','en-out-secondary'],['Size','en-out-size']],
+  chinese: [['中文标题','zh-title'],['中文产品描述','zh-description'],['13 个中文关键词参考','zh-keywords-text'],['材料','zh-out-materials'],['主要颜色','zh-out-primary'],['次要颜色','zh-out-secondary'],['尺寸','zh-out-size']]
+};
+document.querySelectorAll('.copy-all').forEach(btn => btn.addEventListener('click', async () => {
+  const text=copyGroups[btn.dataset.copyGroup].map(([label,id]) => `${label}\n${$(id).textContent}`).join('\n\n');
+  await copyText(text); toast(btn.dataset.copyGroup === 'english' ? 'English listing copied' : '已复制全部中文内容');
+}));
 
 const input=$('image-input'), drop=$('drop-zone'), results=$('image-results'); let compressed=[];
 drop.addEventListener('click',()=>input.click()); drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click()}});
