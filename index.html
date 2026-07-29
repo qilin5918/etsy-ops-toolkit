@@ -123,7 +123,13 @@
           <div id="image-error" class="error" role="alert" aria-live="polite"></div>
         </div>
         <div class="panel results-panel">
-          <div class="panel-title"><div><h3>压缩结果</h3><p id="result-count">上传图片后将在这里显示</p></div><button id="download-all" class="button secondary" type="button" hidden>全部下载 ↓</button></div>
+          <div class="panel-title">
+            <div><h3>压缩结果</h3><p id="result-count">上传图片后将在这里显示</p></div>
+            <div class="result-actions">
+              <button id="clear-all" class="button clear-button" type="button" hidden>清除全部</button>
+              <button id="download-all" class="button secondary" type="button" hidden>全部下载 ↓</button>
+            </div>
+          </div>
           <div id="image-results" class="image-results"><div class="result-empty">还没有待处理的图片</div></div>
         </div>
       </div>
