@@ -1,97 +1,147 @@
 const $ = (id) => document.getElementById(id);
-const form = $('listing-form');
-const zhFieldIds = ['product-name','product-type','materials','primary-color','secondary-color','size','audience','occasion','emotion'].map(id => `zh-${id}`);
-const enFieldIds = ['product-name','product-type','materials','primary-color','secondary-color','size','audience','occasion','emotion'].map(id => `en-${id}`);
-const examples = {
-  'zh-product-name':'月光陶瓷马克杯','zh-product-type':'手工陶瓷咖啡杯','zh-materials':'炻器陶土、食品级釉料','zh-primary-color':'奶油白','zh-secondary-color':'午夜蓝','zh-size':'350 毫升 / 9 × 8 厘米','zh-audience':'咖啡爱好者与居家生活爱好者','zh-occasion':'生日、乔迁或犒赏自己的礼物','zh-emotion':'宁静、治愈与日常的小惊喜',
-  'en-product-name':'Moonlight Ceramic Mug','en-product-type':'handmade ceramic coffee mug','en-materials':'stoneware clay, food-safe glaze','en-primary-color':'cream white','en-secondary-color':'midnight blue','en-size':'350 ml / 9 × 8 cm','en-audience':'coffee lovers and homebodies','en-occasion':'birthdays, housewarmings, or self-care gifts','en-emotion':'calm, comfort, and a small moment of wonder'
-};
-const val = id => $(id).value.trim();
-const cap = text => text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
-const cleanTag = text => text.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim().slice(0,20).trim();
-const containsChinese = text => /[\u3400-\u9fff]/.test(text);
+const ALLOWED_LISTING_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_LISTING_SIZE = 3 * 1024 * 1024;
+const REQUEST_TIMEOUT_MS = 60000;
+const STANDARD_COLORS = ['Black', 'White', 'Brown', 'Beige', 'Yellow', 'Blue', 'Red', 'Green', 'Pink', 'Orange', 'Gray', 'Purple', 'Gold', 'Silver'];
+let listingImage = null;
+let listingPreviewUrl = null;
 
-$('fill-example').addEventListener('click', () => {
-  Object.entries(examples).forEach(([id,value]) => $(id).value = value);
-  hideError('listing-error');
+function setText(id, text) { $(id).textContent = text; }
+function escapeHtml(value) { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
+function showError(id, message) { $(id).textContent = message; $(id).classList.add('show'); }
+function hideError(id) { $(id).textContent = ''; $(id).classList.remove('show'); }
+function toast(message) { const element = $('toast'); element.textContent = message; element.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => element.classList.remove('show'), 1800); }
+function containsChinese(text) { return /[\u3400-\u9fff]/.test(text); }
+
+const listingInput = $('listing-image-input');
+const listingDrop = $('listing-drop-zone');
+const generateButton = $('generate-listing');
+
+listingDrop.addEventListener('click', () => { if (!listingImage) listingInput.click(); });
+listingDrop.addEventListener('keydown', (event) => {
+  if ((event.key === 'Enter' || event.key === ' ') && !listingImage) { event.preventDefault(); listingInput.click(); }
 });
+['dragenter', 'dragover'].forEach(name => listingDrop.addEventListener(name, event => { event.preventDefault(); listingDrop.classList.add('dragover'); }));
+['dragleave', 'drop'].forEach(name => listingDrop.addEventListener(name, event => { event.preventDefault(); listingDrop.classList.remove('dragover'); }));
+listingDrop.addEventListener('drop', event => selectListingImage(event.dataTransfer.files[0]));
+listingInput.addEventListener('change', () => { selectListingImage(listingInput.files[0]); listingInput.value = ''; });
+$('replace-listing-image').addEventListener('click', () => listingInput.click());
+$('remove-listing-image').addEventListener('click', clearListingImage);
 
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const requiredZh = ['zh-product-name','zh-product-type','zh-materials','zh-primary-color'];
-  const requiredEn = ['en-product-name','en-product-type','en-materials','en-primary-color'];
-  const missingZh = requiredZh.filter(id => !val(id));
-  const missingEn = requiredEn.filter(id => !val(id));
-  const invalidEn = enFieldIds.filter(id => containsChinese(val(id)));
-  if (missingEn.length || invalidEn.length) {
-    showError('listing-error','请填写英文商品信息，避免英文文案中出现中文内容。');
-    $(missingEn[0] || invalidEn[0]).focus();
-    return;
-  }
-  if (missingZh.length) {
-    showError('listing-error','请填写中文商品信息中所有带 * 的必填项目。');
-    $(missingZh[0]).focus();
-    return;
-  }
+function selectListingImage(file) {
   hideError('listing-error');
-  const zh = Object.fromEntries(zhFieldIds.map(id => [id.replace('zh-',''), val(id)]));
-  const en = Object.fromEntries(enFieldIds.map(id => [id.replace('en-',''), val(id)]));
-
-  const enAudience = en.audience || 'thoughtful gift seekers';
-  const enOccasion = en.occasion || 'birthdays and meaningful moments';
-  const enEmotion = en.emotion || 'warmth, character, and everyday joy';
-  const sizeLine = en.size ? `Sized at ${en.size}, it is made for comfortable everyday use.` : 'Thoughtfully proportioned for comfortable everyday use.';
-  const enTitle = `${cap(en['product-name'])} — A Thoughtful ${cap(en['product-type'])} for ${cap(enAudience)}`;
-  const enDescription = `Bring ${enEmotion} into the everyday with this ${en['product-type']}. ${en['product-name']} is carefully made from ${en.materials}, pairing ${en['primary-color']}${en['secondary-color'] ? ` with touches of ${en['secondary-color']}` : ''} for a quietly distinctive finish.\n\n${sizeLine} Each piece has the subtle variations that make handmade work special. It is a lovely choice for ${enAudience}, and a meaningful gift for ${enOccasion}.\n\nDETAILS\n• Materials: ${en.materials}\n• Color: ${en['primary-color']}${en['secondary-color'] ? ` and ${en['secondary-color']}` : ''}${en.size ? `\n• Size: ${en.size}` : ''}\n\nMade with care and ready to become part of someone’s daily ritual.`;
-
-  const zhAudience = zh.audience || '珍惜手作温度的人';
-  const zhOccasion = zh.occasion || '生日与值得纪念的时刻';
-  const zhEmotion = zh.emotion || '温暖、个性与日常喜悦';
-  const zhTitle = `${zh['product-name']}｜为${zhAudience}用心制作的${zh['product-type']}`;
-  const zhDescription = `让这件${zh['product-type']}为日常带来${zhEmotion}。${zh['product-name']}采用${zh.materials}细心制作，以${zh['primary-color']}为主色${zh['secondary-color'] ? `，搭配${zh['secondary-color']}细节` : ''}，呈现安静而独特的质感。\n\n${zh.size ? `尺寸为${zh.size}，` : ''}适合${zhAudience}日常使用，也适合作为${zhOccasion}的暖心礼物。手工制作带来的细微差异，让每一件作品都拥有自己的个性。\n\n材料：${zh.materials}\n颜色：${zh['primary-color']}${zh['secondary-color'] ? `、${zh['secondary-color']}` : ''}${zh.size ? `\n尺寸：${zh.size}` : ''}`;
-
-  const rawTags = [en['product-type'],en['product-name'],'handmade gift',`${en['primary-color']} decor`,en.materials.split(',')[0],enAudience.split(/,| and /)[0],enOccasion.split(/,| or /)[0],'artisan made','unique keepsake','thoughtful present','small batch made','cozy home gift',en['secondary-color'] || 'made with care'];
-  const tags = [];
-  rawTags.map(cleanTag).forEach(tag => { if (tag && !tags.includes(tag)) tags.push(tag); });
-  ['etsy handmade','gift for her','gift for him','everyday beauty','handcrafted item','creative gift','artisan decor','special occasion'].forEach(tag => { if (tags.length < 13 && !tags.includes(tag)) tags.push(tag); });
-  const zhKeywords = [zh['product-type'],zh['product-name'],'手工礼物',`${zh['primary-color']}家居`,zh.materials.split(/、|，/)[0],zhAudience.split(/、|与|和/)[0],zhOccasion.split(/、|或/)[0],'匠心制作','独特纪念品','暖心赠礼','小批量手作','温馨家居礼物',zh['secondary-color'] || '用心制作'];
-
-  setText('en-title',enTitle); setText('en-description',enDescription);
-  $('tags').innerHTML = tags.slice(0,13).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
-  setText('tags-text',tags.slice(0,13).join(', '));
-  setText('en-out-materials',en.materials); setText('en-out-primary',en['primary-color']);
-  setText('en-out-secondary',en['secondary-color'] || 'Not specified'); setText('en-out-size',en.size || 'Not specified');
-  setText('zh-title',zhTitle); setText('zh-description',zhDescription);
-  $('zh-keywords').innerHTML = zhKeywords.map(keyword => `<span class="tag">${escapeHtml(keyword)}</span>`).join('');
-  setText('zh-keywords-text',zhKeywords.join('、'));
-  setText('zh-out-materials',zh.materials); setText('zh-out-primary',zh['primary-color']);
-  setText('zh-out-secondary',zh['secondary-color'] || '未填写'); setText('zh-out-size',zh.size || '未填写');
-  $('empty-output').hidden = true; $('output-content').hidden = false;
-  if (innerWidth < 800) $('listing-output').scrollIntoView({behavior:'smooth',block:'start'});
-});
-
-function setText(id,text){ $(id).textContent = text; }
-function escapeHtml(s){ const e=document.createElement('div'); e.textContent=s; return e.innerHTML; }
-function showError(id,message){ $(id).textContent=message; $(id).classList.add('show'); }
-function hideError(id){ $(id).classList.remove('show'); }
-function toast(message){ const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.remove('show'),1800); }
-async function copyText(text){
-  try { await navigator.clipboard.writeText(text); }
-  catch { const area=document.createElement('textarea'); area.value=text; document.body.append(area); area.select(); document.execCommand('copy'); area.remove(); }
+  if (!file) return;
+  if (!ALLOWED_LISTING_TYPES.includes(file.type)) { showError('listing-error', '图片格式不支持，请上传 JPG、PNG 或 WebP 图片。'); return; }
+  if (file.size > MAX_LISTING_SIZE) { showError('listing-error', '图片太大，请上传不超过 3MB 的图片。'); return; }
+  if (listingPreviewUrl) URL.revokeObjectURL(listingPreviewUrl);
+  listingImage = file;
+  listingPreviewUrl = URL.createObjectURL(file);
+  $('listing-preview').src = listingPreviewUrl;
+  setText('listing-file-name', file.name);
+  $('listing-upload-prompt').hidden = true;
+  $('listing-preview-wrap').hidden = false;
+  $('listing-image-actions').hidden = false;
+  generateButton.disabled = false;
+  resetListingOutput();
 }
-document.querySelectorAll('.copy-button').forEach(btn => btn.addEventListener('click', async () => {
-  await copyText($(btn.dataset.copy).textContent);
-  const original=btn.textContent; btn.textContent=original === '复制' ? '已复制 ✓' : 'Copied ✓'; btn.classList.add('copied'); toast('已复制到剪贴板');
-  setTimeout(()=>{ btn.textContent=original; btn.classList.remove('copied'); },1500);
+
+function clearListingImage() {
+  if (listingPreviewUrl) URL.revokeObjectURL(listingPreviewUrl);
+  listingImage = null; listingPreviewUrl = null; listingInput.value = '';
+  $('listing-preview').removeAttribute('src');
+  $('listing-upload-prompt').hidden = false;
+  $('listing-preview-wrap').hidden = true;
+  $('listing-image-actions').hidden = true;
+  generateButton.disabled = true;
+  hideError('listing-error');
+  resetListingOutput();
+}
+
+function resetListingOutput() {
+  $('empty-output').hidden = false;
+  $('output-content').hidden = true;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('read_failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function validateListing(data) {
+  if (!data || typeof data !== 'object') return '返回结果缺少字段，请重试。';
+  const textFields = ['title', 'description', 'primaryColor', 'secondaryColor', 'detectedProduct'];
+  if (textFields.some(field => typeof data[field] !== 'string' || !data[field].trim()) || !Array.isArray(data.warnings)) return '返回结果缺少字段，请重试。';
+  if (!Array.isArray(data.tags) || data.tags.length !== 13) return 'AI 返回的 Tags 数量不是 13 个，请重试。';
+  if (data.tags.some(tag => typeof tag !== 'string' || !tag.trim())) return '返回结果缺少有效的 Tags，请重试。';
+  if (data.tags.some(tag => tag.length > 20)) return 'AI 返回了超过 20 个字符的 Tag，请重试。';
+  if (new Set(data.tags.map(tag => tag.toLowerCase())).size !== 13) return 'AI 返回了重复的 Tags，请重试。';
+  const englishContent = [data.title, data.description, data.primaryColor, data.secondaryColor, ...data.tags].join(' ');
+  if (containsChinese(englishContent)) return 'AI 返回的英文结果包含中文，请重试。';
+  if (!STANDARD_COLORS.includes(data.primaryColor) || ![...STANDARD_COLORS, 'Not specified'].includes(data.secondaryColor)) return 'AI 返回了无效的颜色，请重试。';
+  return '';
+}
+
+$('listing-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!listingImage) { showError('listing-error', '请先上传一张白底产品图片。'); return; }
+  hideError('listing-error');
+  generateButton.disabled = true;
+  generateButton.classList.add('loading');
+  setText('listing-status', '正在分析产品图片并生成 Etsy 文案……');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const image = await fileToDataUrl(listingImage);
+    const response = await fetch('/api/analyze-listing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image }), signal: controller.signal
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error || 'API 请求失败，请稍后重试。');
+    const validationError = validateListing(data);
+    if (validationError) throw new Error(validationError);
+    if (data.warnings.includes('无法准确识别产品造型，请更换一张更清晰的白底图片。')) {
+      throw new Error('无法准确识别产品造型，请更换一张更清晰的白底图片。');
+    }
+    renderListing(data);
+  } catch (error) {
+    const message = error.name === 'AbortError' ? '网络请求超时，请检查网络后重试。' : (error.message || 'API 请求失败，请稍后重试。');
+    showError('listing-error', message);
+  } finally {
+    clearTimeout(timeout);
+    generateButton.disabled = !listingImage;
+    generateButton.classList.remove('loading');
+    setText('listing-status', '');
+  }
+});
+
+function renderListing(data) {
+  setText('en-title', data.title); setText('en-description', data.description);
+  setText('en-out-primary', data.primaryColor); setText('en-out-secondary', data.secondaryColor);
+  $('tags').innerHTML = data.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+  setText('tags-text', data.tags.join(', '));
+  $('empty-output').hidden = true; $('output-content').hidden = false;
+  if (innerWidth < 800) $('listing-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch { const area = document.createElement('textarea'); area.value = text; document.body.append(area); area.select(); document.execCommand('copy'); area.remove(); }
+}
+document.querySelectorAll('.copy-button').forEach(button => button.addEventListener('click', async () => {
+  await copyText($(button.dataset.copy).textContent);
+  const original = button.textContent; button.textContent = 'Copied ✓'; button.classList.add('copied'); toast('Copied to clipboard');
+  setTimeout(() => { button.textContent = original; button.classList.remove('copied'); }, 1500);
 }));
-const copyGroups = {
-  english: [['English Title','en-title'],['English Description','en-description'],['13 Etsy Tags','tags-text'],['Materials','en-out-materials'],['Primary Color','en-out-primary'],['Secondary Color','en-out-secondary'],['Size','en-out-size']],
-  chinese: [['中文标题','zh-title'],['中文产品描述','zh-description'],['13 个中文关键词参考','zh-keywords-text'],['材料','zh-out-materials'],['主要颜色','zh-out-primary'],['次要颜色','zh-out-secondary'],['尺寸','zh-out-size']]
-};
-document.querySelectorAll('.copy-all').forEach(btn => btn.addEventListener('click', async () => {
-  const text=copyGroups[btn.dataset.copyGroup].map(([label,id]) => `${label}\n${$(id).textContent}`).join('\n\n');
-  await copyText(text); toast(btn.dataset.copyGroup === 'english' ? 'English listing copied' : '已复制全部中文内容');
-}));
+$('copy-all-listing').addEventListener('click', async () => {
+  const text = [['Title', 'en-title'], ['Description', 'en-description'], ['Primary Color', 'en-out-primary'], ['Secondary Color', 'en-out-secondary'], ['13 Etsy Tags', 'tags-text']]
+    .map(([label, id]) => `${label}\n${$(id).textContent}`).join('\n\n');
+  await copyText(text); toast('English listing copied');
+});
 
 const input=$('image-input'), drop=$('drop-zone'), results=$('image-results'); let compressed=[];
 drop.addEventListener('click',()=>input.click()); drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click()}});

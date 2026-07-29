@@ -3,133 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="在浏览器本地生成 Etsy Listing 文案并批量压缩商品图片。">
+  <meta name="description" content="上传白底产品图，用 AI 生成 Etsy Listing 文案，并在浏览器本地批量压缩商品图片。">
   <title>Etsy Operations Toolkit</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#top" aria-label="Etsy Operations Toolkit 首页">
-      <span class="brand-mark" aria-hidden="true">E</span>
-      <span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span>
-    </a>
-    <nav aria-label="主要导航">
-      <a href="#listing">Listing 文案</a>
-      <a href="#compressor">图片压缩</a>
-    </nav>
+    <a class="brand" href="#top" aria-label="Etsy Operations Toolkit 首页"><span class="brand-mark" aria-hidden="true">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></a>
+    <nav aria-label="主要导航"><a href="#listing">Listing 文案</a><a href="#compressor">图片压缩</a></nav>
   </header>
 
   <main id="top">
     <section class="hero">
       <div class="eyebrow"><span></span> Made for small creative businesses</div>
-      <h1>把灵感，整理成<br><em>更好的 Etsy 商品页。</em></h1>
-      <p>无需登录或 API Key。文案生成与图片压缩都在你的浏览器中完成，数据不会上传。</p>
-      <div class="hero-actions">
-        <a class="button primary" href="#listing">开始创建 <span>↘</span></a>
-        <span class="privacy-note">◉ 100% 本地处理</span>
-      </div>
+      <h1>一张产品图，生成<br><em>完整 Etsy 商品文案。</em></h1>
+      <p>上传一张清晰的白底产品图片，AI 将识别造型、颜色与可见细节，并生成可直接使用的英文 Listing。</p>
+      <div class="hero-actions"><a class="button primary" href="#listing">开始创建 <span>↘</span></a><span class="privacy-note">◉ 图片将安全发送至 AI 服务进行分析</span></div>
       <div class="hero-art" aria-hidden="true"><span>✦</span><div>handmade<br>with care</div></div>
     </section>
 
     <section class="tool-section" id="listing">
       <div class="section-heading">
-        <div><span class="step">01</span><p class="kicker">LISTING STUDIO</p><h2>Etsy Listing Content</h2></div>
-        <p>输入商品信息，快速获得自然、温暖的中英文 Listing 文案与 Etsy 字段。</p>
+        <div><span class="step">01</span><p class="kicker">AI LISTING STUDIO</p><h2>Etsy Listing Content</h2></div>
+        <p>无需填写商品信息，只需上传一张白底产品图。</p>
       </div>
 
       <div class="workspace listing-workspace">
         <form id="listing-form" class="panel form-panel" novalidate>
-          <div class="panel-title"><h3>商品信息</h3><button type="button" class="text-button" id="fill-example">填入示例</button></div>
-          <fieldset class="language-fields">
-            <legend>中文商品信息</legend>
-            <p class="language-note">仅用于生成中文文案</p>
-            <div class="field-grid">
-              <label class="wide">产品名称 <span>*</span><input id="zh-product-name" placeholder="例如：月光陶瓷马克杯" required></label>
-              <label>产品类型 <span>*</span><input id="zh-product-type" placeholder="例如：手工马克杯" required></label>
-              <label>材质 <span>*</span><input id="zh-materials" placeholder="例如：陶瓷、釉料" required></label>
-              <label>主要颜色 <span>*</span><input id="zh-primary-color" placeholder="例如：奶油白" required></label>
-              <label>次要颜色<input id="zh-secondary-color" placeholder="例如：午夜蓝"></label>
-              <label>尺寸<input id="zh-size" placeholder="例如：350 毫升 / 9 × 8 厘米"></label>
-              <label>适合人群<input id="zh-audience" placeholder="例如：咖啡爱好者"></label>
-              <label>礼物场景<input id="zh-occasion" placeholder="例如：生日、乔迁"></label>
-              <label>情绪价值<input id="zh-emotion" placeholder="例如：宁静、治愈、独特"></label>
+          <div class="panel-title"><div><h3>白底产品图片</h3><p>每次仅分析一张图片</p></div></div>
+          <div id="listing-drop-zone" class="drop-zone listing-drop-zone" tabindex="0" role="button" aria-label="选择或拖放一张白底产品图片">
+            <input id="listing-image-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+            <div id="listing-upload-prompt">
+              <div class="upload-icon">↥</div><h3>拖放白底产品图到这里</h3><p>或 <span>选择本地文件</span></p><small>支持 JPG、PNG、WebP · 单张最大 3MB</small>
             </div>
-          </fieldset>
-          <fieldset class="language-fields english-fields">
-            <legend>English Product Information</legend>
-            <p class="language-note">Used only to generate English content</p>
-            <div class="field-grid">
-              <label class="wide">Product Name <span>*</span><input id="en-product-name" placeholder="e.g. Moonlight Ceramic Mug" required></label>
-              <label>Product Type <span>*</span><input id="en-product-type" placeholder="e.g. handmade coffee mug" required></label>
-              <label>Materials <span>*</span><input id="en-materials" placeholder="e.g. stoneware clay, glaze" required></label>
-              <label>Primary Color <span>*</span><input id="en-primary-color" placeholder="e.g. cream white" required></label>
-              <label>Secondary Color<input id="en-secondary-color" placeholder="e.g. midnight blue"></label>
-              <label>Size<input id="en-size" placeholder="e.g. 350 ml / 9 × 8 cm"></label>
-              <label>Target Audience<input id="en-audience" placeholder="e.g. coffee lovers"></label>
-              <label>Gift Occasion<input id="en-occasion" placeholder="e.g. birthday, housewarming"></label>
-              <label>Emotional Value<input id="en-emotion" placeholder="e.g. calm, comfort, wonder"></label>
+            <div id="listing-preview-wrap" class="listing-preview" hidden>
+              <img id="listing-preview" alt="待分析的产品图片预览">
+              <p id="listing-file-name"></p>
             </div>
-          </fieldset>
+          </div>
+          <div id="listing-image-actions" class="listing-image-actions" hidden>
+            <button id="replace-listing-image" class="button secondary" type="button">更换图片</button>
+            <button id="remove-listing-image" class="button clear-button" type="button">删除图片</button>
+          </div>
+          <div class="ai-privacy-note"><strong>⌾ 图片隐私</strong><p>为了分析商品，所选图片会安全发送至 AI 服务。</p></div>
           <div id="listing-error" class="error" role="alert" aria-live="polite"></div>
-          <button class="button primary full" type="submit">生成 Listing Content <span>→</span></button>
-          <p class="form-tip">提示：描述越具体，生成的内容越贴合你的商品。</p>
+          <button id="generate-listing" class="button primary full" type="submit" disabled>AI Generate Etsy Listing <span>→</span></button>
+          <p id="listing-status" class="listing-status" role="status" aria-live="polite"></p>
         </form>
 
         <div class="panel output-panel" id="listing-output">
-          <div class="empty-state" id="empty-output"><div>✦</div><h3>你的 Listing 文案会出现在这里</h3><p>填写左侧信息，然后点击生成按钮。</p></div>
-          <div id="output-content" hidden>
-            <section class="listing-language-card english-card" aria-labelledby="english-listing-heading">
-              <div class="output-header"><div><p class="kicker">READY TO USE</p><h3 id="english-listing-heading">ENGLISH LISTING</h3></div><button type="button" class="button secondary copy-all" data-copy-group="english">Copy All English</button></div>
-              <div class="output-item"><div class="output-label">English Title <button class="copy-button" data-copy="en-title">Copy</button></div><p id="en-title"></p></div>
-              <div class="output-item"><div class="output-label">English Description <button class="copy-button" data-copy="en-description">Copy</button></div><p id="en-description" class="preserve"></p></div>
-              <div class="output-item"><div class="output-label">13 Etsy Tags <button class="copy-button" data-copy="tags-text">Copy</button></div><div id="tags" class="tags"></div><span id="tags-text" hidden></span></div>
-              <div class="mini-output-grid">
-                <div class="output-item"><div class="output-label">Materials <button class="copy-button" data-copy="en-out-materials">Copy</button></div><p id="en-out-materials"></p></div>
-                <div class="output-item"><div class="output-label">Primary Color <button class="copy-button" data-copy="en-out-primary">Copy</button></div><p id="en-out-primary"></p></div>
-                <div class="output-item"><div class="output-label">Secondary Color <button class="copy-button" data-copy="en-out-secondary">Copy</button></div><p id="en-out-secondary"></p></div>
-                <div class="output-item"><div class="output-label">Size <button class="copy-button" data-copy="en-out-size">Copy</button></div><p id="en-out-size"></p></div>
-              </div>
-            </section>
-            <section class="listing-language-card chinese-card" aria-labelledby="chinese-listing-heading">
-              <div class="output-header"><div><p class="kicker">中文参考文案</p><h3 id="chinese-listing-heading">中文文案</h3></div><button type="button" class="button secondary copy-all" data-copy-group="chinese">复制全部中文内容</button></div>
-              <div class="output-item"><div class="output-label">中文标题 <button class="copy-button" data-copy="zh-title">复制</button></div><p id="zh-title"></p></div>
-              <div class="output-item"><div class="output-label">中文产品描述 <button class="copy-button" data-copy="zh-description">复制</button></div><p id="zh-description" class="preserve"></p></div>
-              <div class="output-item"><div class="output-label">13 个中文关键词参考 <button class="copy-button" data-copy="zh-keywords-text">复制</button></div><div id="zh-keywords" class="tags"></div><span id="zh-keywords-text" hidden></span><small class="reference-note">仅供理解和参考，不作为 Etsy 实际 Tags。</small></div>
-              <div class="mini-output-grid">
-                <div class="output-item"><div class="output-label">材料 <button class="copy-button" data-copy="zh-out-materials">复制</button></div><p id="zh-out-materials"></p></div>
-                <div class="output-item"><div class="output-label">主要颜色 <button class="copy-button" data-copy="zh-out-primary">复制</button></div><p id="zh-out-primary"></p></div>
-                <div class="output-item"><div class="output-label">次要颜色 <button class="copy-button" data-copy="zh-out-secondary">复制</button></div><p id="zh-out-secondary"></p></div>
-                <div class="output-item"><div class="output-label">尺寸 <button class="copy-button" data-copy="zh-out-size">复制</button></div><p id="zh-out-size"></p></div>
-              </div>
-            </section>
-          </div>
+          <div class="empty-state" id="empty-output"><div>✦</div><h3>ENGLISH LISTING</h3><p>上传图片后，AI 生成的英文文案会出现在这里。</p></div>
+          <section id="output-content" class="listing-language-card english-card" aria-labelledby="english-listing-heading" hidden>
+            <div class="output-header"><div><p class="kicker">READY TO USE</p><h3 id="english-listing-heading">ENGLISH LISTING</h3></div><button id="copy-all-listing" type="button" class="button secondary copy-all">Copy All</button></div>
+            <div class="output-item"><div class="output-label">1. English Title <button class="copy-button" data-copy="en-title">Copy</button></div><p id="en-title"></p></div>
+            <div class="output-item"><div class="output-label">2. English Description <button class="copy-button" data-copy="en-description">Copy</button></div><p id="en-description" class="preserve"></p></div>
+            <div class="mini-output-grid color-output-grid">
+              <div class="output-item"><div class="output-label">3. Primary Color <button class="copy-button" data-copy="en-out-primary">Copy</button></div><p id="en-out-primary"></p></div>
+              <div class="output-item"><div class="output-label">4. Secondary Color <button class="copy-button" data-copy="en-out-secondary">Copy</button></div><p id="en-out-secondary"></p></div>
+            </div>
+            <div class="output-item"><div class="output-label">5. 13 Etsy Tags <button class="copy-button" data-copy="tags-text">Copy</button></div><div id="tags" class="tags"></div><span id="tags-text" hidden></span></div>
+          </section>
         </div>
       </div>
     </section>
 
     <section class="tool-section muted-section" id="compressor">
-      <div class="section-heading">
-        <div><span class="step">02</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div>
-        <p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p>
-      </div>
+      <div class="section-heading"><div><span class="step">02</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div><p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p></div>
       <div class="workspace compressor-workspace">
         <div class="panel upload-panel">
           <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="选择或拖放图片">
-            <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
-            <div class="upload-icon">↥</div>
-            <h3>拖放图片到这里</h3><p>或 <span>浏览本地文件</span></p><small>支持 JPG、PNG、WebP · 可多选 · 单张最大 25MB</small>
+            <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="upload-icon">↥</div><h3>拖放图片到这里</h3><p>或 <span>浏览本地文件</span></p><small>支持 JPG、PNG、WebP · 可多选 · 单张最大 25MB</small>
           </div>
-          <div class="local-note"><strong>⌾ 隐私优先</strong><p>图片只在当前浏览器中处理，不会离开你的设备。</p></div>
-          <div id="image-error" class="error" role="alert" aria-live="polite"></div>
+          <div class="local-note"><strong>⌾ 隐私优先</strong><p>图片只在当前浏览器中处理，不会离开你的设备。</p></div><div id="image-error" class="error" role="alert" aria-live="polite"></div>
         </div>
         <div class="panel results-panel">
-          <div class="panel-title">
-            <div><h3>压缩结果</h3><p id="result-count">上传图片后将在这里显示</p></div>
-            <div class="result-actions">
-              <button id="clear-all" class="button clear-button" type="button" hidden>清除全部</button>
-              <button id="download-all" class="button secondary" type="button" hidden>全部下载 ↓</button>
-            </div>
-          </div>
+          <div class="panel-title"><div><h3>压缩结果</h3><p id="result-count">上传图片后将在这里显示</p></div><div class="result-actions"><button id="clear-all" class="button clear-button" type="button" hidden>清除全部</button><button id="download-all" class="button secondary" type="button" hidden>全部下载 ↓</button></div></div>
           <div id="image-results" class="image-results"><div class="result-empty">还没有待处理的图片</div></div>
         </div>
       </div>
