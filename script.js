@@ -103,7 +103,7 @@ async function handleFiles(files){
   const valid=files.filter(f=>['image/jpeg','image/png','image/webp'].includes(f.type)&&f.size<=25*1024*1024);
   if(valid.length!==files.length)showError('image-error','部分文件已跳过：仅支持 JPG、PNG、WebP，且单张不能超过 25MB。');
   if(!valid.length)return; if(!compressed.length)results.innerHTML='';
-  for(const file of valid){ const card=createProcessingCard(file); results.append(card); try{const item=await compressImage(file);compressed.push(item);renderCard(card,item)}catch(err){card.innerHTML=`<div></div><div><h4>${escapeHtml(file.name)}</h4><p class="processing">处理失败：图片可能已损坏或浏览器不支持。</p></div>`} }
+  for(const file of valid){ const card=createProcessingCard(file); results.append(card); try{const item=await compressImage(file);compressed.push(item);renderCard(card,item);updateCount()}catch(err){card.innerHTML=`<div></div><div><h4>${escapeHtml(file.name)}</h4><p class="processing">处理失败：图片可能已损坏或浏览器不支持。</p></div>`} }
   updateCount();
 }
 function createProcessingCard(file){const card=document.createElement('div');card.className='image-card';card.innerHTML=`<div></div><div><h4>${escapeHtml(file.name)}</h4><p class="processing">正在压缩…</p></div>`;return card}
@@ -118,6 +118,20 @@ async function compressImage(file){
 function canvasBlob(canvas,q){return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Canvas export failed')),'image/jpeg',q))}
 function formatSize(bytes){return bytes<1024*1024?`${(bytes/1024).toFixed(0)} KB`:`${(bytes/1024/1024).toFixed(2)} MB`}
 function renderCard(card,item){const saved=Math.max(0,Math.round((1-item.blob.size/item.original)*100));card.innerHTML=`<img src="${item.url}" alt="压缩图片预览"><div><h4>${escapeHtml(item.name)}</h4><p>${item.width} × ${item.height}px · ${formatSize(item.original)} → <strong>${formatSize(item.blob.size)}</strong> <span class="saving">${saved ? `节省 ${saved}%` : '已转为 JPG'}</span></p></div><button class="download-button" type="button">下载 JPG</button>`;card.querySelector('button').onclick=()=>download(item)}
-function updateCount(){$('result-count').textContent=`已完成 ${compressed.length} 张图片`; $('download-all').hidden=!compressed.length}
+function updateCount(){
+  const hasResults=compressed.length>0;
+  $('result-count').textContent=hasResults?`已完成 ${compressed.length} 张图片`:'上传图片后将在这里显示';
+  $('clear-all').hidden=!hasResults;
+  $('download-all').hidden=!hasResults;
+}
+function clearCompressed(){
+  compressed.forEach(item=>URL.revokeObjectURL(item.url));
+  compressed.length=0;
+  results.innerHTML='<div class="result-empty">还没有待处理的图片</div>';
+  input.value='';
+  updateCount();
+  toast('已清除所有压缩结果');
+}
 function download(item){const a=document.createElement('a');a.href=item.url;a.download=item.name;document.body.append(a);a.click();a.remove()}
-$('download-all').addEventListener('click',()=>{compressed.forEach((item,i)=>setTimeout(()=>download(item),i*250));toast(`正在下载 ${compressed.length} 张图片`)});
+$('clear-all').addEventListener('click',clearCompressed);
+$('download-all').addEventListener('click',()=>{compressed.forEach((item,i)=>setTimeout(()=>{if(compressed.includes(item))download(item)},i*250));toast(`正在下载 ${compressed.length} 张图片`)});
