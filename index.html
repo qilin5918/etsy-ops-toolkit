@@ -10,7 +10,7 @@
 <body>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Etsy Operations Toolkit 首页"><span class="brand-mark" aria-hidden="true">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></a>
-    <nav aria-label="主要导航"><a href="#listing">Listing 文案</a><a href="#compressor">图片压缩</a></nav>
+    <nav aria-label="主要导航"><a href="#products">产品主档</a><a href="#package">上架包</a><a href="#ads">广告</a><a href="#profit">利润</a><a href="#dashboard">看板</a><a href="#compressor">图片压缩</a></nav>
   </header>
 
   <main id="top">
@@ -67,8 +67,39 @@
       </div>
     </section>
 
-    <section class="tool-section muted-section" id="compressor">
-      <div class="section-heading"><div><span class="step">02</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div><p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p></div>
+    <section class="tool-section muted-section" id="products">
+      <div class="section-heading"><div><span class="step">02</span><p class="kicker">PRODUCT LIBRARY</p><h2>产品主档</h2></div><p>集中维护产品资料，数据只保存在当前浏览器。</p></div>
+      <div class="ops-grid">
+        <form id="product-form" class="panel ops-form"><div class="panel-title"><div><h3 id="product-form-title">新增产品</h3><p>带 * 为必填项</p></div><button id="reset-product" class="text-button" type="button">清空</button></div>
+          <input id="product-id" type="hidden"><div id="product-fields" class="field-grid"></div>
+          <button class="button primary full" type="submit">保存产品 <span>→</span></button>
+        </form>
+        <div class="panel"><div class="panel-title"><div><h3>产品列表</h3><p id="product-count">0 件产品</p></div></div><div id="product-list" class="record-list"></div></div>
+      </div>
+    </section>
+
+    <section class="tool-section" id="package">
+      <div class="section-heading"><div><span class="step">03</span><p class="kicker">LISTING PACKAGE</p><h2>完整 Etsy 上架包</h2></div><p>从产品主档生成双语上架内容，并自动执行品牌规则检查。</p></div>
+      <div class="panel wide-panel"><div class="toolbar"><label>选择产品<select id="package-product"></select></label><button id="generate-package" class="button primary" type="button">生成上架包</button></div><div id="brand-checks" class="checks empty-inline">请选择产品并生成</div><div id="package-output" class="package-output"></div></div>
+    </section>
+
+    <section class="tool-section muted-section" id="ads">
+      <div class="section-heading"><div><span class="step">04</span><p class="kicker">ADS ANALYZER</p><h2>广告分析器</h2></div><p>手动录入或导入 CSV，自动计算关键指标与行动建议。</p></div>
+      <div class="ops-grid"><form id="ad-form" class="panel ops-form"><div class="panel-title"><h3>广告数据</h3><label class="file-button">导入 CSV<input id="ad-csv" type="file" accept=".csv,text/csv" hidden></label></div><div id="ad-fields" class="field-grid"></div><button class="button primary full" type="submit">保存并分析</button></form><div class="panel"><div class="panel-title"><div><h3>分析结果</h3><p id="ad-count">0 条记录</p></div><button id="clear-ads" class="text-button" type="button">清除记录</button></div><div id="ad-results" class="record-list"></div></div></div>
+    </section>
+
+    <section class="tool-section" id="profit">
+      <div class="section-heading"><div><span class="step">05</span><p class="kicker">PROFIT PLANNER</p><h2>利润计算器</h2></div><p>所有费率均可修改并保存在本地，便于按店铺实际情况测算。</p></div>
+      <div class="ops-grid"><form id="profit-form" class="panel ops-form"><div class="panel-title"><h3>测算参数</h3><button id="save-rates" class="text-button" type="button">保存费率设置</button></div><div id="profit-fields" class="field-grid"></div><button class="button primary full" type="submit">计算利润</button></form><div class="panel"><div class="panel-title"><h3>利润结果</h3></div><div id="profit-results" class="metric-grid empty-inline">填写参数后开始计算</div></div></div>
+    </section>
+
+    <section class="tool-section muted-section" id="dashboard">
+      <div class="section-heading"><div><span class="step">06</span><p class="kicker">OPERATIONS BOARD</p><h2>运营看板</h2></div><p>快速查看产品、广告状态、最近操作和下一步建议。</p></div>
+      <div class="panel wide-panel"><div id="dashboard-list" class="dashboard-grid"></div></div>
+    </section>
+
+    <section class="tool-section" id="compressor">
+      <div class="section-heading"><div><span class="step">07</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div><p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p></div>
       <div class="workspace compressor-workspace">
         <div class="panel upload-panel">
           <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="选择或拖放图片">
