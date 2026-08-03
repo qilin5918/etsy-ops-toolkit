@@ -3,23 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="上传白底产品图，用 AI 生成 Etsy Listing 文案，并在浏览器本地批量压缩商品图片。">
-  <title>Etsy Operations Toolkit</title>
+  <meta name="description" content="图片优先型 Etsy 运营工作台：上传产品图或后台截图，在本地确认、生成、分析与备份。">
+  <title>Etsy 图片运营工作台</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Etsy Operations Toolkit 首页"><span class="brand-mark" aria-hidden="true">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></a>
-    <nav aria-label="主要导航"><a href="#products">产品主档</a><a href="#package">上架包</a><a href="#ads">广告</a><a href="#profit">利润</a><a href="#dashboard">看板</a><a href="#compressor">图片压缩</a></nav>
+    <nav aria-label="主要导航"><a href="#upload-center">上传中心</a><a href="#dashboard">运营看板</a><a href="#products">产品</a><a href="#ads">广告</a><a href="#orders">订单</a><a href="#backup">设置</a></nav>
   </header>
 
   <main id="top">
     <section class="hero">
       <div class="eyebrow"><span></span> Made for small creative businesses</div>
-      <h1>一张产品图，生成<br><em>完整 Etsy 商品文案。</em></h1>
-      <p>上传一张清晰的白底产品图片，AI 将识别造型、颜色与可见细节，并生成可直接使用的英文 Listing。</p>
-      <div class="hero-actions"><a class="button primary" href="#listing">开始创建 <span>↘</span></a><span class="privacy-note">◉ 图片将安全发送至 AI 服务进行分析</span></div>
+      <h1>先上传图片，再开始<br><em>Etsy 日常运营。</em></h1>
+      <p>产品图、Listing、广告、订单或费用截图都从一个入口进入。系统先分类和提取，你确认关键字段后再保存结果。</p>
+      <div class="hero-actions"><a class="button primary" href="#upload-center">上传图片 <span>↘</span></a><span class="privacy-note">◉ 默认本地处理，不保存原图</span></div>
       <div class="hero-art" aria-hidden="true"><span>✦</span><div>handmade<br>with care</div></div>
+    </section>
+
+    <section class="tool-section upload-first" id="upload-center">
+      <div class="section-heading"><div><span class="step">01</span><p class="kicker">IMAGE INBOX</p><h2>统一图片上传中心</h2></div><p>一次上传多张图片。分类不确定时必须由你选择，任何提取结果都可以修改。</p></div>
+      <div class="panel wide-panel">
+        <div id="unified-drop-zone" class="drop-zone unified-drop" tabindex="0" role="button" aria-label="选择或拖放多张图片">
+          <input id="unified-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+          <div class="upload-icon">↥</div><h3>把产品图或 Etsy 后台截图拖到这里</h3><p>或 <span>选择多张图片</span></p><small>JPG、PNG、WebP · 单张最大 25MB · 图片仅用于本次本地识别与预览</small>
+        </div>
+        <div class="privacy-banner"><strong>隐私保护开启</strong><span>不持久化原图；订单中的姓名、地址和联系方式不会写入本地记录或日志。</span></div>
+        <div id="upload-error" class="error" role="alert"></div>
+        <div class="queue-header"><div><h3>识别与确认队列</h3><p id="queue-count">暂无待处理图片</p></div><button id="clear-queue" class="button clear-button" type="button" hidden>清空队列</button></div>
+        <div id="image-queue" class="image-queue"><div class="empty-inline">上传后将在这里分类。低置信度字段会标记为“待确认”。</div></div>
+      </div>
     </section>
 
     <section class="tool-section" id="listing">
@@ -84,8 +98,21 @@
     </section>
 
     <section class="tool-section muted-section" id="ads">
-      <div class="section-heading"><div><span class="step">04</span><p class="kicker">ADS ANALYZER</p><h2>广告分析器</h2></div><p>手动录入或导入 CSV，自动计算关键指标与行动建议。</p></div>
+      <div class="section-heading"><div><span class="step">04</span><p class="kicker">ADS ANALYZER</p><h2>广告分析器</h2></div><p>截图识别结果先进入上传中心的待确认表格；也可手动录入或使用 CSV 备用导入。</p></div>
       <div class="ops-grid"><form id="ad-form" class="panel ops-form"><div class="panel-title"><h3>广告数据</h3><label class="file-button">导入 CSV<input id="ad-csv" type="file" accept=".csv,text/csv" hidden></label></div><div id="ad-fields" class="field-grid"></div><button class="button primary full" type="submit">保存并分析</button></form><div class="panel"><div class="panel-title"><div><h3>分析结果</h3><p id="ad-count">0 条记录</p></div><button id="clear-ads" class="text-button" type="button">清除记录</button></div><div id="ad-results" class="record-list"></div></div></div>
+    </section>
+
+    <section class="tool-section muted-section" id="orders">
+      <div class="section-heading"><div><span class="step">06</span><p class="kicker">ORDER DESK</p><h2>订单与 Listing 对比</h2></div><p>订单只保存履约必需字段；用修改前后截图建立优化记录。</p></div>
+      <div class="ops-grid">
+        <div class="panel"><div class="panel-title"><div><h3>订单记录</h3><p>隐私字段默认遮挡且永不保存</p></div></div><div id="order-list" class="record-list"></div></div>
+        <form id="comparison-form" class="panel ops-form"><div class="panel-title"><div><h3>前后截图对比</h3><p>从上传队列选择两张 Listing 截图</p></div></div><div class="field-grid"><label>修改前<select id="comparison-before" required></select></label><label>修改后<select id="comparison-after" required></select></label><label>修改日期<input id="comparison-date" type="date" required></label><label class="wide">修改原因<textarea id="comparison-reason" required></textarea></label><label class="wide">修改结果<textarea id="comparison-result" placeholder="可稍后补充"></textarea></label></div><button class="button primary full" type="submit">保存对比记录</button><div id="comparison-list" class="record-list comparison-list"></div></form>
+      </div>
+    </section>
+
+    <section class="tool-section" id="backup">
+      <div class="section-heading"><div><span class="step">09</span><p class="kicker">LOCAL DATA</p><h2>设置与本地备份</h2></div><p>导出不包含图片和客户隐私。费率继续在利润计算器中按店铺情况修改。</p></div>
+      <div class="panel wide-panel backup-panel"><div><h3>你的数据只在此浏览器</h3><p>建议定期导出 JSON 完整备份，或导出 CSV 供表格分析。</p></div><div class="backup-actions"><button id="export-json" class="button secondary" type="button">导出 JSON</button><button id="export-csv" class="button secondary" type="button">导出 CSV</button><button id="clear-local-data" class="button clear-button danger" type="button">一键清除本地数据</button></div></div>
     </section>
 
     <section class="tool-section" id="profit">
@@ -95,7 +122,7 @@
 
     <section class="tool-section muted-section" id="dashboard">
       <div class="section-heading"><div><span class="step">06</span><p class="kicker">OPERATIONS BOARD</p><h2>运营看板</h2></div><p>快速查看产品、广告状态、最近操作和下一步建议。</p></div>
-      <div class="panel wide-panel"><div id="dashboard-list" class="dashboard-grid"></div></div>
+      <div class="panel wide-panel"><div id="status-summary" class="status-summary" aria-label="运营状态汇总"></div><div id="dashboard-list" class="dashboard-grid"></div></div>
     </section>
 
     <section class="tool-section" id="compressor">
@@ -116,6 +143,7 @@
   </main>
   <footer><div class="brand"><span class="brand-mark">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></div><p>Made with care for independent makers. <span>✦</span></p></footer>
   <div id="toast" class="toast" role="status" aria-live="polite">已复制到剪贴板</div>
+  <script src="ops-core.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
