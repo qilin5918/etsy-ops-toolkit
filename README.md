@@ -1,101 +1,96 @@
-# Etsy Operations Toolkit
+# Etsy 图片优先型运营工作台
 
-面向 Etsy 手作卖家的本地优先运营工具：从产品主档、双语上架包到广告和利润分析集中在一个响应式页面中；原有 AI Listing 与图片压缩功能保持不变。
+这是一个面向 Etsy 手作卖家的**本地优先、图片优先**工作台。进入页面后可直接上传产品图或 Etsy 后台截图；系统只在分类证据明确时给出初步类型，不明确的图片必须手动选择。所有识别草稿都先进入可编辑的确认队列，确认后才进入产品、广告、利润或订单记录。
 
-## 功能
+> 第一版不会登录 Etsy、发布 Listing、开关广告或直接操作正式店铺。前端没有 OpenAI API Key；订单客户姓名、详细地址和联系方式不会保存或写入日志。
 
-### AI Etsy Listing
+## 页面与工作流
 
-- 只需上传一张 JPG、PNG 或 WebP 白底产品图（最大 3MB），无需填写任何文字。
-- 服务端通过 OpenAI Responses API 识别造型、颜色、可见皮革拼接及缝线等细节。
-- 固定商品设定为美国市场的 Genuine Leather Bag Charm，生成自然的美国英语。
-- 输出简短 English Title、English Description、标准 Primary/Secondary Color，以及正好 13 个 Etsy Tags。
-- 前后端均校验 Tag 数量、长度、重复项和中文字符；每个字段均可单独复制，也可使用 Copy All。
-- Listing 图片会发送给 AI 服务分析；OpenAI API Key 仅从服务端环境变量读取，不会进入浏览器代码或 API 响应。
+### 统一图片上传中心
 
-### Image Compressor
+- 支持批量拖拽或选择 JPG、PNG、WebP，单张最大 25MB。
+- 分为产品图、Listing 截图、Ads 截图、订单截图、费用截图和“无法判断”。
+- 低置信度结果显示“待确认”；无法判断时禁止继续，必须手动选择。
+- 原始图片只生成临时浏览器预览 URL，不写入 `localStorage`，清空队列或刷新页面即释放。
+- 浏览器支持原生文字识别能力时可作为本地 OCR 草稿；不支持时保留完整的手动可编辑确认表，不会上传截图到第三方 OCR 服务。
 
-- 同时导入多张 JPG、PNG 或 WebP（单张最大 25MB）。
-- 在浏览器中转换为标准 RGB JPG，并保持图片原始宽高比例。
-- 逐步调节 JPG 质量，尽量压缩到 1MB 以下；必要时等比缩小超大图片。
-- 显示原始/压缩后大小、尺寸和节省比例，支持逐张下载及全部下载。
-- 图片只在当前浏览器中处理，不会离开设备。
+### 产品与上架包
 
-### 产品主档与品牌规则
+多张产品图可作为同一批次进入产品工作流。主档包含名称、SKU、默认 `Bag Charm`、动物/造型、主辅色、真实材质、尺寸、重量、工艺、目标客户、礼物对象、场景、授权、售价、成本和运费。真实材质、尺寸、重量、成本与授权状态必须由用户填写确认。
 
-- 保存名称、SKU、类型、动物造型、颜色、材质、尺寸、人群、礼物对象、场景、情绪价值、授权、售价、成本和运费。
-- 支持新增、编辑、复制和删除；默认产品类型为 `Bag Charm`，所有主档均存储在浏览器 `localStorage`。
-- 上架包生成时检查动物名称、标题关键词堆砌、13 个标签及 20 字符限制；已授权商品强制包含授权说明。
+上架包输出英文/中文标题与描述、13 个英文标签、Materials、颜色、尺寸/重量、亮点、礼物对象、场景、授权说明、拍摄建议和逐图 SEO 文案。规则保持为：
 
-### 完整 Etsy 上架包
+- 优先称为 `Bag Charm`，不自动改为 `Keychain`；
+- 明确动物名称；
+- 标题自然、面向美国客户，不以 `Handmade Leather` 开头且不堆砌关键词；
+- 已授权商品输出正式授权说明，未授权商品不暗示授权。
 
-- 从产品主档生成英文/中文标题与描述、13 个英文标签、Materials、主辅色、尺寸、亮点、礼物对象和使用场景。
-- 英文标题避免目录式表达，不以 `Handmade Leather` 开头，也不会自动把商品称为 `Keychain`。
+原有单图 AI Listing Studio 仍保留。它通过服务端 `/api/analyze-listing` 调用视觉模型，API Key 只读取服务端环境变量。
 
-### 广告、利润与运营看板
+### Ads、利润、订单与对比
 
-- 广告分析器支持手动输入及带引号字段的 CSV 导入，计算 CTR、CPC、CVR、ROAS、每单广告成本和净利润，并提供行动建议。
-- 利润计算器的刊登费、交易费率、支付费率/固定费和其他费率均可修改、本地保存；输出自然流量利润、广告后利润、保本 ROAS、广告预算上限和折扣后利润。
-- 运营看板汇总主档状态、广告状态、最后修改时间、最近操作与下一步建议。
+- **Ads**：截图确认表包含产品、日期范围、Views、Clicks、Spend、Orders、Revenue、ROAS、Favorites；保存后计算 CTR、CPC、CVR、ROAS、每单广告成本和广告花费占比。原有手动录入及 CSV 导入继续可用，CSV 不是必填。
+- **利润**：费用截图可填入售价、运费、广告花费和 Etsy 费用；产品、包装和其他线下成本要求手工确认。刊登费、交易费、支付费和其他费率都可修改并保存在本地，不写死店铺费率。
+- **订单**：只保存订单号、产品、数量、个性化要求、国家、发货截止和状态。使用字段白名单丢弃姓名、地址与联系方式。
+- **Listing 对比**：选择已确认的修改前/后截图，记录标题、主图观察、价格、运费、标签，以及修改日期、原因和结果。
+- **运营看板**：保留产品和广告状态、最近操作与每件产品的建议下一步；订单确认后同步反映运营进展。
 
-## 本地数据与 CSV 格式
+### 既有工具与备份
 
-除 AI Listing 上传的单张产品图外，新运营模块的数据不会发送到服务器。清除浏览器站点数据会同时清除产品、广告记录与费率设置，请按需自行备份。
-
-广告 CSV 第一行可使用以下英文表头：
-
-```csv
-product,days,ad views,clicks,spend,orders,revenue,favorites,price,cost,shipping
-Fox Charm,14,1200,36,18.50,3,89.70,12,29.90,8.00,4.50
-```
+- 原有图片压缩继续支持批量转 RGB JPG、逐张/批量下载和一键清除。
+- 产品、广告、费率、订单及对比记录使用 `localStorage`；真实图片不持久化。
+- 支持 JSON 完整结构化备份和 CSV 表格导出，均不包含图片及客户隐私。
+- “一键清除本地数据”会清除产品、广告、订单、对比与费率。
 
 ## 本地开发
 
-Listing 接口是 Vercel Serverless Function，因此推荐使用 Vercel CLI：
+要求 Node.js 18+。Listing API 是 Vercel Serverless Function：
 
 ```bash
 npm install
 npx vercel dev
 ```
 
-在项目根目录创建不会提交到 Git 的 `.env.local`：
+复制 `.env.example` 为不会提交的 `.env.local`，并设置服务端变量：
 
 ```dotenv
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-然后打开终端显示的本地地址。可选环境变量 `OPENAI_MODEL` 可覆盖默认视觉模型 `gpt-4.1-mini`。
-
-> 仅运行 `python3 -m http.server 8000` 可以查看页面并使用图片压缩，但静态服务器不会运行 `/api/analyze-listing`。
-
-## 部署到 Vercel
-
-1. 将仓库导入 Vercel，Framework Preset 选择 **Other**；项目无需 Build Command。
-2. 在项目的 **Settings → Environment Variables** 新增 `OPENAI_API_KEY`，值为 OpenAI API Key，并按需勾选 Production、Preview 和 Development。
-3. 重新部署，使环境变量应用到 Serverless Function。
-4. 打开部署地址，上传一张不超过 3MB 的白底产品图进行验证。
-
-也可以使用 CLI：
+仅查看本地工作台可运行：
 
 ```bash
-vercel env add OPENAI_API_KEY
-vercel --prod
+python3 -m http.server 8000
 ```
 
-请勿将 Key 写入 `index.html`、`script.js` 或任何提交文件。`.gitignore` 已排除常见本地环境变量文件。
+静态服务器可使用上传确认、产品、广告、利润、订单、备份和图片压缩，但不会运行 `/api/analyze-listing`。
+
+## 广告 CSV 备用格式
+
+```csv
+product,days,ad views,clicks,spend,orders,revenue,favorites,price,cost,shipping
+Fox Charm,14,1200,36,18.50,3,89.70,12,29.90,8.00,4.50
+```
 
 ## 测试
 
 ```bash
 npm test
+node --check script.js
+node --check ops-core.js
 ```
+
+测试覆盖 Listing API 校验、保守图片分类、广告指标、订单隐私字段清理和 CSV 转义。
 
 ## 文件结构
 
 ```text
-api/analyze-listing.js  # 安全调用 OpenAI Responses API 的 Vercel 后端
-index.html              # AI Listing、产品、上架、广告、利润、看板与压缩页面
-style.css               # 完整桌面端/手机端响应式视觉样式
-script.js               # 本地数据、生成/校验/计算、CSV、图片上传与压缩逻辑
-test/api.test.js        # 后端 JSON 校验与解析测试
+api/analyze-listing.js  # 服务端 AI Listing 分析
+index.html              # 图片优先工作台及既有工具页面
+ops-core.js             # 可测试的分类、指标、隐私清理和 CSV 核心逻辑
+script.js               # 上传确认、编辑、保存、删除、导出及既有功能
+style.css               # 桌面与移动端响应式样式
+test/                   # Node 测试
 ```
+
+`.gitignore` 排除环境变量、依赖、本地上传/截图/导出目录、备份和浏览器测试产物。不要把真实产品图、订单截图或客户资料提交到 GitHub。

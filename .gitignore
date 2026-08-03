@@ -3,3 +3,11 @@
 !.env.example
 .vercel
 node_modules
+# Local screenshots, exports, and browser test artifacts must never be committed.
+uploads/
+screenshots/
+exports/
+*.local.json
+*.backup.json
+playwright-report/
+test-results/
