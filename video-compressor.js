@@ -1,4 +1,6 @@
 /* Browser-only, sequential video compression powered by ffmpeg.wasm. */
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+
 (() => {
   'use strict';
 
@@ -16,9 +18,11 @@
     unsupported: '不支持此视频格式。请选择 MP4、MOV 或 WebM 文件。',
     large: '视频文件较大，当前浏览器无法在本地安全处理。建议关闭其他标签页，或先将视频缩短后重新上传。',
     decode: '无法读取视频，文件可能已损坏或当前浏览器不支持解码。',
-    engine: '压缩引擎加载失败，请检查网络连接后重试。',
+    engine: '视频压缩组件加载失败，请刷新页面后重试。',
+    worker: '浏览器阻止了视频处理组件，请尝试 Chrome 或 Edge。',
+    core: 'FFmpeg 核心文件加载失败。',
     memory: '视频文件较大，当前浏览器无法在本地安全处理。建议关闭其他标签页，或先将视频缩短后重新上传。',
-    transcode: '视频压缩失败，请尝试较小的文件或更换浏览器。',
+    transcode: '视频转码失败。',
     download: '下载失败，请稍后重试。'
   };
 
@@ -116,18 +120,23 @@
 
   async function loadEngine(job) {
     if (ffmpeg) return ffmpeg;
-    setStage(job, '正在准备压缩引擎…', 2);
+    setStage(job, '正在加载视频压缩组件…\n首次使用可能需要一些时间', 2);
+    const coreURL = new URL('/ffmpeg-core/ffmpeg-core.js', window.location.origin).href;
+    const wasmURL = new URL('/ffmpeg-core/ffmpeg-core.wasm', window.location.origin).href;
     try {
-      const [{FFmpeg}, {toBlobURL}] = await Promise.all([
-        import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/esm/index.js'),
-        import('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/esm/index.js')
-      ]);
       const instance = new FFmpeg();
       instance.on('progress', ({progress}) => { if (currentJob && currentJob.status === 'processing') setStage(currentJob, `正在压缩 ${Math.round(progress * 100)}%`, Math.round(progress * 100)); });
-      const base = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
-      await instance.load({coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'), wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm')});
-      ffmpeg = instance; return ffmpeg;
-    } catch (error) { console.error('ffmpeg.wasm load failed', error); throw new Error('engine'); }
+      await instance.load({coreURL, wasmURL});
+      ffmpeg = instance;
+      setStage(job, '视频压缩组件已就绪 ✓', 3);
+      return ffmpeg;
+    } catch (error) {
+      console.error('ffmpeg.wasm load failed', {error, stack: error?.stack, coreURL, wasmURL, workerURL: 'same-origin Vite bundle asset'});
+      const details = `${error?.name || ''} ${error?.message || error}`;
+      if (/SecurityError|Worker|worker|importScripts|cross-origin|CORS/i.test(details)) throw new Error('worker', {cause: error});
+      if (/core|wasm|WebAssembly|compile|instantiate|fetch/i.test(details)) throw new Error('core', {cause: error});
+      throw new Error('engine', {cause: error});
+    }
   }
 
   function outputDimensions(meta, resolution) {
@@ -153,7 +162,8 @@
     if (job.settings.audio === 'keep') args.push('-c:a', 'aac', '-b:a', job.settings.mode === 'maximum' ? '96k' : '128k'); else args.push('-an');
     args.push('-movflags', '+faststart', outputName);
     try {
-      await engine.exec(args);
+      const exitCode = await engine.exec(args);
+      if (exitCode !== 0) throw new Error('transcode');
       if (cancelRequested) throw new Error('cancelled');
       setStage(job, '正在生成 MP4…', 98);
       const output = await engine.readFile(outputName);
@@ -171,7 +181,7 @@
       const job = currentJob; job.status = 'processing'; cancelRequested = false; setStage(job, '正在准备压缩引擎…', 1); updateVideoCount();
       try { await transcode(job); job.status = 'done'; renderCompleted(job); }
       catch (error) {
-        console.error('Video transcode error', error);
+        console.error('Video transcode error', {error, stack: error?.stack, cause: error?.cause});
         if (cancelRequested || error.message === 'cancelled') { job.status = 'cancelled'; setStage(job, '已取消'); }
         else { job.status = 'failed'; setStage(job, friendlyError[error.message] || (/memory|alloc|OOM/i.test(String(error)) ? friendlyError.memory : friendlyError.transcode)); }
       }
