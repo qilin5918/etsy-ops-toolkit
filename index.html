@@ -126,8 +126,9 @@
     </section>
 
     <section class="tool-section" id="compressor">
-      <div class="section-heading"><div><span class="step">07</span><p class="kicker">IMAGE WORKSHOP</p><h2>Image Compressor</h2></div><p>批量转换为标准 RGB JPG，智能平衡文件大小与商品细节，图片始终留在本地。</p></div>
-      <div class="workspace compressor-workspace">
+      <div class="section-heading"><div><span class="step">07</span><p class="kicker">MEDIA WORKSHOP</p><h2>Media Compressor</h2></div><p>图片与产品视频都在浏览器本地处理。智能减小文件体积，同时尽可能保留商品细节与画面质感。</p></div>
+      <div class="media-tabs" role="tablist" aria-label="媒体压缩类型"><button class="media-tab active" id="image-tab" role="tab" aria-selected="true" aria-controls="image-compressor" type="button">图片压缩</button><button class="media-tab" id="video-tab" role="tab" aria-selected="false" aria-controls="video-compressor" type="button">视频压缩</button></div>
+      <div class="workspace compressor-workspace" id="image-compressor" role="tabpanel" aria-labelledby="image-tab">
         <div class="panel upload-panel">
           <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="选择或拖放图片">
             <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="upload-icon">↥</div><h3>拖放图片到这里</h3><p>或 <span>浏览本地文件</span></p><small>支持 JPG、PNG、WebP · 可多选 · 单张最大 25MB</small>
@@ -139,11 +140,41 @@
           <div id="image-results" class="image-results"><div class="result-empty">还没有待处理的图片</div></div>
         </div>
       </div>
+      <div id="video-compressor" role="tabpanel" aria-labelledby="video-tab" hidden>
+        <div class="video-intro"><h3>Video Compressor</h3><p>高画质压缩 Etsy 产品视频，在尽可能减少文件大小的同时保留皮革纹理、手工缝线、边缘细节和自然色彩。</p></div>
+        <div class="workspace video-workspace">
+          <div class="video-controls">
+            <div class="panel">
+              <div id="video-drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="选择或拖放视频"><input id="video-input" type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" multiple hidden><div class="upload-icon">▶</div><h3>拖放视频到这里</h3><p>或 <span>浏览本地文件</span></p><small>支持 MP4、MOV、WebM · 可多选 · 默认逐个处理</small></div>
+              <div class="local-note"><strong>⌾ 隐私优先</strong><p>视频仅在当前浏览器和设备中处理，不会上传到服务器，也不会保存到 GitHub。</p></div><div id="video-error" class="error" role="alert" aria-live="polite"></div>
+            </div>
+            <div class="panel video-settings">
+              <div class="panel-title"><div><h3>压缩模式</h3><p>视觉高保真 · Visually Lossless</p></div></div>
+              <div class="mode-options" role="radiogroup" aria-label="压缩模式">
+                <label><input type="radio" name="video-mode" value="quality" checked><span><strong>Etsy 高画质</strong><small>优先保留纹理、缝线、边缘与自然色彩</small></span></label>
+                <label><input type="radio" name="video-mode" value="balanced"><span><strong>平衡</strong><small>兼顾清晰度和文件体积</small></span></label>
+                <label><input type="radio" name="video-mode" value="maximum"><span><strong>最大压缩</strong><small>明显减小体积，可接受一定画质损失</small></span></label>
+              </div>
+              <details class="advanced-settings"><summary>高级设置</summary><div class="setting-grid">
+                <label>分辨率<select id="video-resolution"><option value="original">保持原始</option><option value="1080" selected>1080p</option><option value="720">720p</option></select></label>
+                <label>帧率<select id="video-fps"><option value="original" selected>保持原始</option><option value="30">30 FPS</option><option value="24">24 FPS</option></select></label>
+                <label>音频<select id="video-audio"><option value="remove" selected>移除音频</option><option value="keep">保留音频</option></select></label>
+                <label>输出格式<select disabled><option>MP4</option></select></label>
+              </div></details>
+            </div>
+          </div>
+          <div class="panel video-results-panel">
+            <div class="panel-title"><div><h3>视频队列与结果</h3><p id="video-result-count">上传视频后将在这里显示</p></div><div class="result-actions"><button id="video-clear-all" class="button clear-button" type="button" hidden>清除全部</button><button id="video-download-all" class="button secondary" type="button" hidden>全部下载 ↓</button></div></div>
+            <div id="video-results" class="video-results"><div class="result-empty">还没有待处理的视频</div></div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
   <footer><div class="brand"><span class="brand-mark">E</span><span><strong>Etsy Operations</strong><small>Toolkit for makers</small></span></div><p>Made with care for independent makers. <span>✦</span></p></footer>
   <div id="toast" class="toast" role="status" aria-live="polite">已复制到剪贴板</div>
   <script src="ops-core.js"></script>
   <script src="script.js"></script>
+  <script src="video-compressor.js"></script>
 </body>
 </html>
