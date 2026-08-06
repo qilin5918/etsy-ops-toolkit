@@ -11,3 +11,6 @@ exports/
 *.backup.json
 playwright-report/
 test-results/
+
+dist/
+public/ffmpeg-core/
