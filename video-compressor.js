@@ -1,6 +1,4 @@
 /* Browser-only, sequential video compression powered by ffmpeg.wasm. */
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-
 (() => {
   'use strict';
 
@@ -10,6 +8,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
   const jobs = [];
   let running = false;
   let ffmpeg = null;
+  let FFmpegCtor = null;
   let currentJob = null;
   let cancelRequested = false;
 
@@ -18,7 +17,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
     unsupported: '不支持此视频格式。请选择 MP4、MOV 或 WebM 文件。',
     large: '视频文件较大，当前浏览器无法在本地安全处理。建议关闭其他标签页，或先将视频缩短后重新上传。',
     decode: '无法读取视频，文件可能已损坏或当前浏览器不支持解码。',
-    engine: '视频压缩组件加载失败，请刷新页面后重试。',
+    engine: '视频压缩组件暂时无法启动，请刷新页面后重试。',
     worker: '浏览器阻止了视频处理组件，请尝试 Chrome 或 Edge。',
     core: 'FFmpeg 核心文件加载失败。',
     memory: '视频文件较大，当前浏览器无法在本地安全处理。建议关闭其他标签页，或先将视频缩短后重新上传。',
@@ -124,7 +123,11 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
     const coreURL = new URL('/ffmpeg-core/ffmpeg-core.js', window.location.origin).href;
     const wasmURL = new URL('/ffmpeg-core/ffmpeg-core.wasm', window.location.origin).href;
     try {
-      const instance = new FFmpeg();
+      if (!FFmpegCtor) {
+        const module = await import('@ffmpeg/ffmpeg');
+        FFmpegCtor = module.FFmpeg;
+      }
+      const instance = new FFmpegCtor();
       instance.on('progress', ({progress}) => { if (currentJob && currentJob.status === 'processing') setStage(currentJob, `正在压缩 ${Math.round(progress * 100)}%`, Math.round(progress * 100)); });
       await instance.load({coreURL, wasmURL});
       ffmpeg = instance;
